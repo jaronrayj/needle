@@ -1,0 +1,14 @@
+{
+  "name": "needle",
+  "version": "1.0.0",
+  "description": "needle in the haystack",
+  "main": "main.js",
+  "author": "Jaron Johnson",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^7.1.0"
+  }
+}
