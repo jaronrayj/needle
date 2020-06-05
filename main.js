@@ -49,9 +49,9 @@ inq.prompt([
                     break
                 case "section":
                     if (inqRes.ultraLog) {
-                        ultraLog(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section-inqRes.id`);
+                        ultraLog(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section-${inqRes.id}`);
                     } else {
-                        console.log(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section-inqRes.id`);
+                        console.log(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section-${inqRes.id}`);
                     }
                     break;
 
