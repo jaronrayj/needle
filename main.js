@@ -1,5 +1,6 @@
 const fs = require('fs');
 const inq = require('inquirer');
+const parseJson = require('parse-json');
 
 const jsonLocation = fs.readdirSync('./json-storage/original')
 inq.prompt([
@@ -10,21 +11,26 @@ inq.prompt([
         name: "jsonFile"
     },
     {
+        name: "type",
         type: "list",
         message: "Which do you want to search?",
-        choices: ["user", "section", "course"],
-        name: "type"
+        choices: ["user", "section"],
     },
     {
+        name: "idType",
         type: "list",
         message: "What info do you have?",
-        choices: ["id", "full_name"],
-        name: "idType"
+        choices: ["id", "name"],
     },
     {
+        name: "id",
         type: "input",
-        message: "Please provide:",
-        name: "id"
+        message: "Please provide name/id:",
+    },
+    {
+        name: "ultraLog",
+        type: "confirm",
+        message: "Ultra Log? (display _internal and _original)",
     },
 ])
     .then(inqRes => {
@@ -33,15 +39,20 @@ inq.prompt([
         fs.readFile(filelocation, (err, data) => {
             const convertJson = JSON.parse(data.toString())
 
-            switch (type) {
+            switch (inqRes.type) {
                 case "user":
-                    userInfo(inqRes.idType, inqRes.id, convertJson)
-                    break;
+                    if (inqRes.ultraLog) {
+                        ultraLog(userInfo(inqRes.idType, inqRes.id, convertJson), `user/${inqRes.id}`);
+                    } else {
+                        console.log(userInfo(inqRes.idType, inqRes.id, convertJson), `user/${inqRes.id}`);
+                    }
+                    break
                 case "section":
-
-                    break;
-                case "course":
-
+                    if (inqRes.ultraLog) {
+                        ultraLog(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section/inqRes.id`);
+                    } else {
+                        console.log(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section/inqRes.id`);
+                    }
                     break;
 
                 default:
@@ -50,37 +61,109 @@ inq.prompt([
         })
     })
 
-function userInfoID(idType, id, data) {
-    let results;
+function ultraLog(results, fname) {
+    results.users.forEach(obj => {
+        console.log(obj);
+    });
+    results.sections.forEach(obj => {
+        console.log(obj);
+    });
+    let dataParsed = JSON.stringify(results);
+    // let dataParsed = parseJson(results.toString());
+    let filename = `./json-storage/log/${fname}.json`;
+    fs.writeFile(filename, dataParsed, (err) => {
+        if (err) throw err;
+        console.log(`Created file here: ${filename}`);
+    });
+}
+
+function userInfo(idType, id, data) {
+    let results = {
+        users: [],
+        sections: []
+    };
     let sectionIdEnrollments = [];
-    if (idType = "id") {
+    let userId = [];
+    let userObj = {
+        id: '',
+        name: ''
+    };
+    // Find a way to dig through multiple users
+    if (idType === "id") {
         data.users.forEach(user => {
             if (user.user_id === id) {
-                results.push(user);
+                userObj.id = user.user_id;
+                userObj.name = `${user.first_name} ${user.last_name}`;
+                results.users.push(user);
             }
         });
     } else {
         data.users.forEach(user => {
-            if ((`${user.first_name} ${user.last_name}`).includes(id)) {
-                results.push(user);
+            if (user.first_name || user.last_name) {
+                if ((`${user.first_name} ${user.last_name}`).toLowerCase().includes(id.toLowerCase())) {
+                    userObj.id = user.user_id;
+                    userObj.name = `${user.first_name} ${user.last_name}`;
+                    results.users.push(user);
+                    userId.push(userObj);
+                }
             }
         });
-        if (id) {
-            id = user.user_id;
-        }
     }
-    data.enrollments.forEach(enrollment => {
-        if (enrollment.user_id === id) {
-            sectionIdEnrollments.push(enrollment);
-        }
-    });
-    data.sections.forEach(section => {
-        // run through sectionIdEnrollments if section aligned
-        sectionIdEnrollments.forEach(enrolled => {
-            if (section.section_id = enrolled.section_id) {
-                results.push(section);
+    userId.forEach(currentID => {
+        data.enrollments.forEach(enrollment => {
+            if (enrollment.user_id === currentID.id) {
+                sectionIdEnrollments.push(enrollment);
             }
+        });
+        data.sections.forEach(section => {
+            // run through sectionIdEnrollments if section aligned
+            sectionIdEnrollments.forEach(enrolled => {
+                if (section.section_id === enrolled.section_id) {
+                    results.sections.push(section);
+                }
+            })
         })
     })
-    
+    return results;
+}
+
+function sectionInfo(idType, id, data) {
+    let results = {
+        sections: [],
+        users: [],
+    }
+    let sectionIdEnrollments = [];
+    let sectionIds = [];
+    // Find a way to dig through multiple users
+    if (idType === "id") {
+        data.sections.forEach(section => {
+            if (section.section_id === id) {
+                results.sections.push(section);
+            }
+        });
+    } else {
+        data.sections.forEach(section => {
+            if (section.name) {
+                if ((section.name.toLowerCase().includes(id.toLowerCase()))) {
+                    results.sections.push(section);
+                    sectionIds.push(section.section_id);
+                }
+            }
+        });
+    }
+    sectionIds.forEach(sectionId => {
+        data.enrollments.forEach(enrollment => {
+            if (enrollment.section_id === sectionId) {
+                sectionIdEnrollments.push(enrollment);
+            }
+        });
+        data.users.forEach(user => {
+            sectionIdEnrollments.forEach(enrolled => {
+                if (user.user_id === enrolled.user_id) {
+                    results.users.push(user);
+                }
+            })
+        })
+    })
+    return results;
 }

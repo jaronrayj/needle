@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "inquirer": "^7.1.0"
+    "inquirer": "^7.1.0",
+    "parse-json": "^5.0.0"
   }
 }
