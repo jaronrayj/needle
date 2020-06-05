@@ -42,16 +42,16 @@ inq.prompt([
             switch (inqRes.type) {
                 case "user":
                     if (inqRes.ultraLog) {
-                        ultraLog(userInfo(inqRes.idType, inqRes.id, convertJson), `user/${inqRes.id}`);
+                        ultraLog(userInfo(inqRes.idType, inqRes.id, convertJson), `user-${inqRes.id}`);
                     } else {
-                        console.log(userInfo(inqRes.idType, inqRes.id, convertJson), `user/${inqRes.id}`);
+                        console.log(userInfo(inqRes.idType, inqRes.id, convertJson), `user-${inqRes.id}`);
                     }
                     break
                 case "section":
                     if (inqRes.ultraLog) {
-                        ultraLog(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section/inqRes.id`);
+                        ultraLog(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section-inqRes.id`);
                     } else {
-                        console.log(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section/inqRes.id`);
+                        console.log(sectionInfo(inqRes.idType, inqRes.id, convertJson), `section-inqRes.id`);
                     }
                     break;
 
