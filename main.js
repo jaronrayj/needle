@@ -1,5 +1,5 @@
-const fs = require('fs');
 const inq = require('inquirer');
+const fs = require('fs');
 const parseJson = require('parse-json');
 
 const jsonLocation = fs.readdirSync('./json-storage/original')
